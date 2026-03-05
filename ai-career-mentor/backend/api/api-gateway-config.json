@@ -1,0 +1,140 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Career Readiness AI API",
+    "description": "API for analyzing career readiness and generating personalized roadmaps",
+    "version": "1.0.0"
+  },
+  "basePath": "/prod",
+  "schemes": ["https"],
+  "paths": {
+    "/analyze": {
+      "post": {
+        "summary": "Analyze career readiness",
+        "description": "Accepts user profile and returns AI-powered readiness analysis",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["department", "year", "targetCompany", "hoursPerDay", "monthsAvailable"],
+              "properties": {
+                "department": {
+                  "type": "string",
+                  "example": "Computer Science"
+                },
+                "year": {
+                  "type": "string",
+                  "example": "3"
+                },
+                "targetCompany": {
+                  "type": "string",
+                  "example": "Amazon"
+                },
+                "hoursPerDay": {
+                  "type": "number",
+                  "example": 4
+                },
+                "monthsAvailable": {
+                  "type": "number",
+                  "example": 6
+                },
+                "userId": {
+                  "type": "string",
+                  "example": "user123"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful analysis",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "readinessScore": {
+                      "type": "object"
+                    },
+                    "aiAnalysis": {
+                      "type": "object"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing required fields"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:ACCOUNT_ID:function:analyzeCareerReadiness/invocations",
+          "httpMethod": "POST",
+          "type": "aws_proxy"
+        }
+      },
+      "options": {
+        "summary": "CORS support",
+        "responses": {
+          "200": {
+            "description": "CORS headers",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "type": "string"
+              },
+              "Access-Control-Allow-Methods": {
+                "type": "string"
+              },
+              "Access-Control-Allow-Headers": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "type": "mock",
+          "requestTemplates": {
+            "application/json": "{\"statusCode\": 200}"
+          },
+          "responses": {
+            "default": {
+              "statusCode": "200",
+              "responseParameters": {
+                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health check endpoint",
+        "responses": {
+          "200": {
+            "description": "API is healthy"
+          }
+        }
+      }
+    }
+  }
+}

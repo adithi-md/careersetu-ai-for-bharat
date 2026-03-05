@@ -1,0 +1,16 @@
+{
+  "name": "career-readiness-lambda",
+  "version": "1.0.0",
+  "description": "AWS Lambda functions for Career Readiness AI",
+  "main": "analyzeCareerReadiness.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1400.0"
+  },
+  "devDependencies": {},
+  "keywords": ["aws", "lambda", "ai", "career"],
+  "author": "",
+  "license": "MIT"
+}
