@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Report.css";
+import { generateAIAnalysis } from "./utils/aiLogic";
 
 function Report() {
   const location = useLocation();
@@ -10,190 +11,39 @@ function Report() {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [projectedScore, setProjectedScore] = useState(0);
   const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // AI Logic - Calculate readiness score
-  const calculateReadiness = () => {
-    const yearScore = {
-      "1": 20,
-      "2": 35,
-      "3": 50,
-      "4": 65,
-      "Graduate": 70
-    };
 
-    const companyDifficulty = {
-      "Amazon": 90,
-      "Google": 95,
-      "Microsoft": 92,
-      "Infosys": 70,
-      "TCS": 65,
-      "Wipro": 68,
-      "Startup": 75
-    };
-
-    const baseScore = yearScore[data.year] || 30;
-    const hoursBonus = Math.min(Number(data.hoursPerDay) * 3, 20);
-    const timeBonus = Math.min(Number(data.monthsAvailable) * 2, 15);
-    
-    const currentScore = Math.min(baseScore + hoursBonus + timeBonus, 100);
-    const targetScore = companyDifficulty[data.targetCompany] || 75;
-    
-    const improvement = Math.min(
-      Number(data.hoursPerDay) * Number(data.monthsAvailable) * 0.8,
-      30
-    );
-    
-    const futureScore = Math.min(currentScore + improvement, 100);
-
-    return {
-      current: Math.round(currentScore),
-      projected: Math.round(futureScore),
-      target: targetScore,
-      gap: Math.max(targetScore - currentScore, 0)
-    };
-  };
-
-  const generateAIAnalysis = () => {
-    const scores = calculateReadiness();
-    
-    const companyData = {
-      "Amazon": {
-        overview: "Amazon seeks candidates with strong problem-solving skills, system design knowledge, and leadership principles alignment.",
-        requirements: ["Data Structures & Algorithms", "System Design", "Behavioral (Leadership Principles)", "Coding Proficiency"],
-        interviewPattern: "2 Online Assessments → Phone Screen → 4-5 Onsite Rounds (Coding + System Design + Behavioral)",
-        skills: { dsa: 90, systemDesign: 85, problemSolving: 88, projects: 75 }
-      },
-      "Google": {
-        overview: "Google emphasizes algorithmic thinking, scalability, and innovation. Candidates must excel in coding and system design.",
-        requirements: ["Advanced Algorithms", "Distributed Systems", "Code Optimization", "Product Sense"],
-        interviewPattern: "Phone Screen → 4-5 Technical Rounds (Algorithms + System Design + Googleyness)",
-        skills: { dsa: 95, systemDesign: 90, problemSolving: 92, projects: 80 }
-      },
-      "Microsoft": {
-        overview: "Microsoft values technical depth, collaboration, and growth mindset. Strong coding and design skills required.",
-        requirements: ["Data Structures", "Object-Oriented Design", "Cloud Technologies", "Problem Solving"],
-        interviewPattern: "Phone Screen → Onsite (Coding + Design + Behavioral)",
-        skills: { dsa: 88, systemDesign: 85, problemSolving: 85, projects: 78 }
-      },
-      "Infosys": {
-        overview: "Infosys focuses on foundational programming, aptitude, and communication skills for entry-level roles.",
-        requirements: ["Programming Basics", "Aptitude", "Communication", "Domain Knowledge"],
-        interviewPattern: "Online Test → Technical Interview → HR Round",
-        skills: { dsa: 65, systemDesign: 50, problemSolving: 70, projects: 60 }
-      },
-      "TCS": {
-        overview: "TCS evaluates candidates on programming fundamentals, logical reasoning, and communication.",
-        requirements: ["C/Java/Python", "Aptitude & Reasoning", "Communication", "Basic CS Concepts"],
-        interviewPattern: "National Qualifier Test → Technical + HR Interview",
-        skills: { dsa: 60, systemDesign: 45, problemSolving: 65, projects: 55 }
-      },
-      "Wipro": {
-        overview: "Wipro assesses coding ability, problem-solving, and communication for campus placements.",
-        requirements: ["Programming", "Logical Reasoning", "Verbal Ability", "Technical Knowledge"],
-        interviewPattern: "Online Test → Technical Interview → HR Round",
-        skills: { dsa: 68, systemDesign: 50, problemSolving: 70, projects: 58 }
-      },
-      "Startup": {
-        overview: "Startups seek versatile engineers with hands-on experience, quick learning ability, and ownership mindset.",
-        requirements: ["Full-Stack Skills", "Problem Solving", "Real Projects", "Adaptability"],
-        interviewPattern: "Take-home Assignment → Technical Discussion → Culture Fit",
-        skills: { dsa: 70, systemDesign: 65, problemSolving: 75, projects: 85 }
-      }
-    };
-
-    const company = companyData[data.targetCompany] || companyData["Startup"];
-    
-    // Calculate candidate skills based on year and preparation
-    const candidateSkills = {
-      dsa: Math.min(scores.current - 5, 100),
-      systemDesign: Math.min(scores.current - 15, 100),
-      problemSolving: Math.min(scores.current, 100),
-      projects: Math.min(scores.current - 10, 100)
-    };
-
-    // Generate skill gaps
-    const skillGaps = Object.keys(company.skills).map(skill => ({
-      name: skill,
-      candidate: candidateSkills[skill],
-      required: company.skills[skill],
-      gap: Math.max(company.skills[skill] - candidateSkills[skill], 0)
-    }));
-
-    // Generate AI recommendations
-    const weaknesses = skillGaps
-      .filter(s => s.gap > 10)
-      .map(s => s.name)
-      .join(", ");
-
-    const aiExplanation = scores.gap > 20
-      ? `Significant preparation needed. Focus on ${weaknesses || "core fundamentals"}. Your current readiness is ${scores.current}% but ${data.targetCompany} expects ${scores.target}%.`
-      : scores.gap > 10
-      ? `You're on the right track but need focused improvement in ${weaknesses || "key areas"}. Bridge the ${scores.gap}% gap with consistent practice.`
-      : `Strong profile! You're ${scores.current}% ready. Fine-tune your skills and you'll be competitive for ${data.targetCompany}.`;
-
-    // Generate roadmap
-    const roadmap = generateRoadmap(scores, skillGaps);
-
-    return {
-      scores,
-      company,
-      candidateSkills,
-      skillGaps,
-      aiExplanation,
-      roadmap
-    };
-  };
-
-  const generateRoadmap = (scores, skillGaps) => {
-    const months = Number(data.monthsAvailable);
-    const hoursPerDay = Number(data.hoursPerDay);
-
-    if (months <= 3) {
-      return [
-        { phase: "Month 1", focus: "DSA Fundamentals", tasks: ["Arrays, Strings, Linked Lists", "Basic sorting & searching", "Solve 50 easy problems"] },
-        { phase: "Month 2", focus: "Advanced DSA", tasks: ["Trees, Graphs, DP", "Solve 40 medium problems", "Mock interviews"] },
-        { phase: "Month 3", focus: "System Design & Projects", tasks: ["Design patterns", "Build 1 full-stack project", "Final preparation"] }
-      ];
-    } else if (months <= 6) {
-      return [
-        { phase: "Month 1-2", focus: "DSA Foundation", tasks: ["Master all data structures", "100 LeetCode problems", "Time complexity analysis"] },
-        { phase: "Month 3-4", focus: "Advanced Problem Solving", tasks: ["Dynamic Programming", "Graph algorithms", "System design basics"] },
-        { phase: "Month 5-6", focus: "Interview Prep", tasks: ["Mock interviews", "Build 2 projects", "Company-specific preparation"] }
-      ];
-    } else {
-      return [
-        { phase: "Month 1-3", focus: "Strong Foundation", tasks: ["Complete DSA course", "150 problems", "CS fundamentals"] },
-        { phase: "Month 4-6", focus: "Intermediate Skills", tasks: ["Advanced algorithms", "System design", "Open source contributions"] },
-        { phase: "Month 7+", focus: "Expert Level", tasks: ["Competitive programming", "Multiple projects", "Interview mastery"] }
-      ];
-    }
-  };
 
   useEffect(() => {
     if (!data.targetCompany) return;
 
-    const analysis = generateAIAnalysis();
-    setAiAnalysis(analysis);
-
-    // Animate score
-    let current = 0;
-    const target = analysis.scores.current;
-    const increment = target / 50;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= target) {
-        current = target;
-        clearInterval(timer);
-      }
-      setAnimatedScore(Math.floor(current));
-    }, 20);
-
+    // Simulate AI processing
     setTimeout(() => {
-      setProjectedScore(analysis.scores.projected);
-    }, 1000);
+      const analysis = generateAIAnalysis(data);
+      setAiAnalysis(analysis);
+      setLoading(false);
 
-    return () => clearInterval(timer);
+      // Animate score
+      let current = 0;
+      const target = analysis.scores.current;
+      const increment = target / 50;
+
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          current = target;
+          clearInterval(timer);
+        }
+        setAnimatedScore(Math.floor(current));
+      }, 20);
+
+      setTimeout(() => {
+        setProjectedScore(analysis.scores.projected);
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }, 1500);
   }, [data]);
 
   if (!data.targetCompany) {
@@ -206,11 +56,17 @@ function Report() {
     );
   }
 
-  if (!aiAnalysis) {
-    return <div className="loading-screen"><div className="loader"></div></div>;
+  if (loading || !aiAnalysis) {
+    return (
+      <div className="loading-screen">
+        <div className="loader"></div>
+        <h2>Analyzing your profile using AI...</h2>
+        <p>Evaluating {data.department} skills • Comparing with {data.targetCompany} standards • Generating roadmap</p>
+      </div>
+    );
   }
 
-  const { scores, company, skillGaps, aiExplanation, roadmap } = aiAnalysis;
+  const { scores, company, skillGaps, aiExplanation, roadmap, studyTopics } = aiAnalysis;
 
   const getScoreColor = (score) => {
     if (score >= 75) return "#22c55e";
@@ -285,9 +141,9 @@ function Report() {
             ))}
           </div>
 
-          {/* 3-Month Projection */}
+          {/* Dynamic Month Readiness Projection */}
           <div className="analysis-card projection">
-            <h3>📈 3-Month Readiness Projection</h3>
+            <h3>📈 {data.monthsAvailable}-Month Readiness Projection</h3>
             <div className="projection-score">
               <span className="projected-number">{projectedScore}%</span>
               <span className="improvement">+{projectedScore - scores.current}% improvement</span>
@@ -376,18 +232,13 @@ function Report() {
             </div>
           </div>
 
-          {/* Recommended Topics */}
+          {/* Recommended Topics - Dynamic based on department */}
           <div className="company-card">
             <h3>Recommended Study Topics</h3>
             <div className="topics-grid">
-              <span className="topic-tag">Arrays & Strings</span>
-              <span className="topic-tag">Dynamic Programming</span>
-              <span className="topic-tag">System Design</span>
-              <span className="topic-tag">Trees & Graphs</span>
-              <span className="topic-tag">Object-Oriented Design</span>
-              <span className="topic-tag">Databases</span>
-              <span className="topic-tag">Behavioral Questions</span>
-              <span className="topic-tag">Mock Interviews</span>
+              {studyTopics.map((topic, idx) => (
+                <span key={idx} className="topic-tag">{topic}</span>
+              ))}
             </div>
           </div>
         </div>

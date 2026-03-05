@@ -35,8 +35,8 @@ function Home() {
     return (
       <div className="loading-screen">
         <div className="loader"></div>
-        <h2>AI is analyzing your profile...</h2>
-        <p>Evaluating readiness • Comparing with company standards • Generating roadmap</p>
+        <h2>Analyzing your profile using AI...</h2>
+        <p>Evaluating {formData.department} readiness • Comparing with {formData.targetCompany} standards • Generating personalized roadmap</p>
       </div>
     );
   }
@@ -44,9 +44,9 @@ function Home() {
   return (
     <div className="home-container">
       <div className="hero-section">
-        <h1 className="hero-title">Career Readiness AI</h1>
+        <h1 className="hero-title">LakshyaAI</h1>
         <p className="hero-subtitle">
-          AI-powered platform that evaluates your readiness for top tech companies
+          AI Powered Career Readiness Intelligence Platform for Bharat
         </p>
       </div>
 
